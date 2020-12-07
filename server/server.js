@@ -40,7 +40,10 @@ io.on("connection", socket =>{
         console.log(name, room)
         const {error, user} = addUser({id: socket.id, name, room});
 
-        if(error) return callback({error:'error'})
+        if(error){
+            console.log(error)
+            return callback({error:'error'})
+        }    
         
         socket.emit('message', {user:'admin', text:`${user.name}, welcome to the room ${user.room}`})
 

@@ -5,41 +5,22 @@ import AddToPhotosIcon from '@material-ui/icons/AddToPhotos';
 import {Paper, Icon, Grid, Modal, List, ListItem, Divider, ListItemText, ListItemAvatar, Card, CardContent, CardHeader, Button, Avatar, CssBaseline, TextField, Typography, Container } from '@material-ui/core'
 import AvatarGroup from '@material-ui/lab/AvatarGroup';
 import { makeStyles } from '@material-ui/core/styles';
-import FileUpload from '../components/FileUpload'
-import ScrollToBottom from 'react-scroll-to-bottom'
+import OnlineUsers from '../components/OnlineUsers'
 import io from 'socket.io-client';
+import Imessenger from '../components/InstantMessenger';
 
 const useStyles = makeStyles((theme) => ({
     main:{
         backgroundColor:'#120B29',
-        height:'100%'
+        height:'100vh',
+        padding:'20px'
     },
     avatar: {
         margin: theme.spacing(1),
         backgroundColor: theme.palette.secondary.main,
     },
-    messagebox:{
-        width:'70%',
+    messenger:{
         height:'100%'
-    },
-    chat:{
-        width: '100%',
-        backgroundColor: theme.palette.background.paper,
-        overflow: 'auto',
-        maxHeight: '52vh',
-    },
-    chatContainer:{
-        padding:'40px',
-        height:'52vh',
-        width:'60vw'
-    },
-    inputBox:{
-        width:'100%'
-    },
-    inputPaper:{
-        bottom:'10px',
-        width:"57vw",
-        padding:'10px'
     }
 }));
 
@@ -66,8 +47,12 @@ export default function ChatView(props) {
 
         socket = io(ENDPOINT);
 
-        socket.emit('join', {name:name, room:room}, ()=>{
+        socket.emit('join', {name:name, room:room}, (error)=>{
             
+            if(error){
+                console.log(error)
+                navigate('/')
+            }
         })
 
         // socket.on('onlineUsers', (data)=>{
@@ -94,7 +79,6 @@ export default function ChatView(props) {
     }, []);
     
     // sessionStorage.setItem('myData', 'name')
-
     const sendMessage = (e) => {
         console.log('message sent')
         e.preventDefault();
@@ -102,87 +86,29 @@ export default function ChatView(props) {
             socket.emit('sendMessage', message, ()=> setMessage(''))
         }
     }
+
     
     console.log(message, messages)
 
     const classes = useStyles();
     return (
         <Grid container 
-            direction="column"
-            justify="center"
+            direction="row"
+            justify="flex-start"
             alignItems="center"
-            spacing={5}
+            spacing={2}
             className={classes.main}
         >
-            <Grid item>
-                <Paper elevation={9} className={classes.inputPaper}>
-                    <AvatarGroup max={4}>
-                        {
-                            onlineUsers.map(users =>{
-                                return(
-                                    <Avatar key={users} alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                                )
-                            })
-                        
-                        }
-                    </AvatarGroup>
-                </Paper>
+            <Grid item xs={3}>
+                <OnlineUsers users={onlineUsers} />
             </Grid>
-            <Grid item xs={10} >
-                <Paper elevation={9} className={classes.chatContainer}>
-                    <List className={classes.chat}>
-                        <ScrollToBottom>
-                        {
-                            messages.map(message =>{
-                                return(
-                                    <>
-                                    <ListItem key={message} alignItems="flex-start">
-                                        <ListItemAvatar>
-                                        <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                        primary={message.user}
-                                        secondary={
-                                            <React.Fragment>
-                                            <Typography
-                                                component="span"
-                                                variant="body2"
-                                                className={classes.inline}
-                                                color="textPrimary"
-                                            >
-                                                {message.text}
-                                            </Typography>
-
-                                            </React.Fragment>
-                                        }
-                                        />
-                                    </ListItem>
-                                    <Divider variant="inset" component="li" />
-                                    </>
-                                )
-                            })
-                        }
-                        </ScrollToBottom>
-                    </List>
-                </Paper>
-            </Grid>
-            <Grid item >
-                <Paper elevation={9} className={classes.inputPaper}>
-                    <Grid container className={classes.inputBox} >
-                        <Grid item xs={1}>
-                            <FileUpload/>
-                        </Grid>
-                        <Grid item xs={11} >
-                            <TextField
-                                fullWidth
-                                value={message}
-                                variant="outlined"
-                                onChange={(e)=>setMessage(e.target.value)}
-                                onKeyDown={(e)=>e.keyCode===13?sendMessage(e):null}
-                            />
-                        </Grid>
-                    </Grid>
-                </Paper>
+            <Grid item xs={9}  >
+                <Imessenger 
+                    messages={messages} 
+                    message={message} 
+                    setMessage={setMessage} 
+                    sendMessage={sendMessage}
+                />
             </Grid>
         </Grid>
     );
